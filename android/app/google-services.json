@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "13870628872",
+    "project_id": "cryptalert-13450",
+    "storage_bucket": "cryptalert-13450.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:13870628872:android:b9754ff98345a7466391bd",
+        "android_client_info": {
+          "package_name": "com.example.crypt_alert"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "13870628872-ni7dau5gn0aflsbvgvcllp0dmq5n545r.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBV-dwElVuGWHw9DC6nj8s3SPtXjSq8Fvs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "13870628872-ni7dau5gn0aflsbvgvcllp0dmq5n545r.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
