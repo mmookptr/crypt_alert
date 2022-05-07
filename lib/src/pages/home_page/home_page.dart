@@ -85,7 +85,6 @@ class HomePage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 profile(context),
-                alert(context),
               ],
             ),
             const SizedBox(height: 16),
@@ -165,49 +164,6 @@ class HomePage extends StatelessWidget {
                 fontWeight: FontWeight.bold,
                 color: Colors.black87,
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget alert(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        // Navigator.of(context).pushReplacement(
-        //   MaterialPageRoute(
-        //     builder: (_) => const AlertPage(),
-        //   ),
-        // );
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 8,
-        ),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          // border: Border.all(
-          //   width: 3,
-          // ),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          children: const [
-            Text(
-              "Alert",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-            SizedBox(
-              width: 4,
-            ),
-            Icon(
-              Icons.notifications,
-              color: Colors.black87,
             ),
           ],
         ),
