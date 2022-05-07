@@ -27,5 +27,3 @@ class LoginFailedEvent extends _Event {
 
   final String error;
 }
-
-class RegisterRequestedEvent extends _Event {}

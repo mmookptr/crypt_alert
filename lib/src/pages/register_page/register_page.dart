@@ -1,8 +1,8 @@
 import 'package:crypt_alert/src/common/widgets/page_scaffold.dart';
+import 'package:crypt_alert/src/pages/home_page/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crypt_alert/src/app/cubits/dialog_cubit.dart';
-import 'package:crypt_alert/src/app/cubits/router_cubit.dart';
 
 import 'package:crypt_alert/src/common/widgets/loading_indicator.dart';
 
@@ -40,7 +40,6 @@ class _RegisterPageState extends State<RegisterPage> {
     return BlocProvider(
       create: (_) => RegisterPageBloc(
         dialogCubit: context.read<DialogCubit>(),
-        routerCubit: context.read<RouterCubit>(),
       ),
       child: BlocBuilder<RegisterPageBloc, RegisterPageState>(
         builder: (context, state) {
@@ -62,6 +61,8 @@ class _RegisterPageState extends State<RegisterPage> {
       case RegisterRequestingState:
         return registerRequestingContent(
             context, state as RegisterRequestingState);
+      case RegisterSuccessState:
+        return registerSuccessContent(context, state as RegisterSuccessState);
       default:
         throw Exception(
             "Incomplete State Mapping Case: No case for ${state.runtimeType}");
@@ -270,6 +271,23 @@ class _RegisterPageState extends State<RegisterPage> {
     BuildContext context,
     RegisterRequestingState state,
   ) {
+    return const LoadingIndicator();
+  }
+
+  Widget registerSuccessContent(
+    BuildContext context,
+    RegisterSuccessState state,
+  ) {
+    Future.delayed(const Duration(milliseconds: 500), () {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => HomePage(
+            username: username,
+          ),
+        ),
+      );
+    });
+
     return const LoadingIndicator();
   }
 }

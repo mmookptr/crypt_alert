@@ -1,15 +1,15 @@
-part of 'home_page_bloc.dart';
+part of 'alert_page_bloc.dart';
 
-abstract class HomePageState {}
+abstract class AlertPageState {}
 
 class InitialState extends _State {}
 
 class LoadInProgressState extends _State {}
 
 class LoadSuccessState extends _State {
-  LoadSuccessState({required this.tokens});
+  LoadSuccessState({required this.alerts});
 
-  final List<Token> tokens;
+  final List<Alert> alerts;
 }
 
 class LoadFailureState extends _State {}

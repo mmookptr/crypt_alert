@@ -1,10 +1,11 @@
 import 'package:crypt_alert/src/common/widgets/text_divider.dart';
+import 'package:crypt_alert/src/pages/home_page/home_page.dart';
+import 'package:crypt_alert/src/pages/register_page/register_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:crypt_alert/src/common/widgets/page_scaffold.dart';
 import 'package:crypt_alert/src/app/cubits/dialog_cubit.dart';
-import 'package:crypt_alert/src/app/cubits/router_cubit.dart';
 import 'package:crypt_alert/src/common/widgets/loading_indicator.dart';
 
 import 'bloc/login_page_bloc.dart';
@@ -35,7 +36,6 @@ class _LoginPageState extends State<LoginPage> {
     return BlocProvider(
       create: (_) => LoginPageBloc(
         dialogCubit: context.read<DialogCubit>(),
-        routerCubit: context.read<RouterCubit>(),
       ),
       child: BlocBuilder<LoginPageBloc, LoginPageState>(
         builder: (context, state) {
@@ -56,6 +56,8 @@ class _LoginPageState extends State<LoginPage> {
         return loadSuccessContent(context, state as LoadSuccessState);
       case LoginRequestingState:
         return loginRequestingContent(context, state as LoginRequestingState);
+      case LoginSuccessState:
+        return loginSuccessContent(context, state as LoginSuccessState);
       default:
         throw Exception(
             "Incomplete State Mapping Case: No case for ${state.runtimeType}");
@@ -212,6 +214,14 @@ class _LoginPageState extends State<LoginPage> {
 
         if (isLoginFormValid) {
           bloc.add(LoginRequestedEvent(username, password));
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => HomePage(
+                username: username,
+              ),
+            ),
+          );
         } else {
           setState(() {
             showValidationError = true;
@@ -226,12 +236,15 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget registerButton(BuildContext context) {
-    final bloc = context.read<LoginPageBloc>();
-
     return TextButton(
       style: TextButton.styleFrom(padding: const EdgeInsets.all(0)),
       onPressed: () {
-        bloc.add(RegisterRequestedEvent());
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const RegisterPage(),
+          ),
+        );
       },
       child: const Text(
         'Sign up',
@@ -248,5 +261,20 @@ class _LoginPageState extends State<LoginPage> {
     LoginRequestingState state,
   ) {
     return const LoadingIndicator();
+  }
+
+  Widget loginSuccessContent(
+    BuildContext context,
+    LoginSuccessState state,
+  ) {
+    Future.delayed(const Duration(milliseconds: 500), () {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => const RegisterPage(),
+        ),
+      );
+    });
+
+    return Container();
   }
 }

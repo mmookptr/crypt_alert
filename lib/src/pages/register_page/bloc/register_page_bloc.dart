@@ -1,8 +1,8 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:async';
 
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:crypt_alert/src/app/cubits/dialog_cubit.dart';
-import 'package:crypt_alert/src/app/cubits/router_cubit.dart';
 
 part 'register_page_state.dart';
 part 'register_page_event.dart';
@@ -13,7 +13,6 @@ typedef _State = RegisterPageState;
 class RegisterPageBloc extends Bloc<_Event, _State> {
   RegisterPageBloc({
     required this.dialogCubit,
-    required this.routerCubit,
   }) : super(InitialState()) {
     on<StartedEvent>(_onStarted);
     on<LoadSuccededEvent>(_onLoadSucceeded);
@@ -22,7 +21,6 @@ class RegisterPageBloc extends Bloc<_Event, _State> {
     on<RegisterFailedEvent>(_onRegisterFailed);
   }
 
-  final RouterCubit routerCubit;
   final DialogCubit dialogCubit;
 
   void _onStarted(
@@ -53,9 +51,7 @@ class RegisterPageBloc extends Bloc<_Event, _State> {
     RegisterSucceededEvent event,
     Emitter<_State> emit,
   ) async {
-    emit(state);
-
-    // routerCubit.pushReplacement(page: HomePage(username: event.username));
+    emit(RegisterSuccessState());
   }
 
   void _onRegisterFailed(

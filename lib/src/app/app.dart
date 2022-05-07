@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:crypt_alert/src/app/cubits/authentication_cubit.dart';
 import 'package:crypt_alert/src/app/cubits/dialog_cubit.dart';
-import 'package:crypt_alert/src/app/cubits/router_cubit.dart';
 import 'package:crypt_alert/src/common/widgets/app_dialog.dart';
 
 import '../pages/login_page/login_page.dart';
@@ -20,9 +19,6 @@ class App extends StatelessWidget {
         ),
         BlocProvider<DialogCubit>(
           create: (_) => DialogCubit(),
-        ),
-        BlocProvider<RouterCubit>(
-          create: (_) => RouterCubit(),
         ),
       ],
       child: app(
@@ -47,47 +43,6 @@ class App extends StatelessWidget {
                 );
               },
             ),
-            BlocListener<RouterCubit, RouterCubitState?>(
-              listener: (context, state) {
-                switch (state.runtimeType) {
-                  case PushState:
-                    {
-                      final pushState = state as PushState;
-
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => pushState.page,
-                        ),
-                      );
-
-                      break;
-                    }
-                  case PushReplacementState:
-                    {
-                      final pushReplacementState =
-                          state as PushReplacementState;
-
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => pushReplacementState.page,
-                        ),
-                      );
-
-                      break;
-                    }
-                  case PopState:
-                    {
-                      Navigator.pop(context);
-
-                      break;
-                    }
-                  default:
-                    return;
-                }
-              },
-            )
           ],
           child: const LoginPage(),
         ),

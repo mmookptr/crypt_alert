@@ -1,47 +1,48 @@
-import 'package:crypt_alert/src/common/widgets/text_divider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:adaptive_action_sheet/adaptive_action_sheet.dart';
+import 'package:intersperse/intersperse.dart';
 
+import 'package:crypt_alert/src/common/widgets/token_card.dart';
+import 'package:crypt_alert/src/pages/alert_page/alert_page.dart';
+import 'package:crypt_alert/src/repositories/token_repository.dart';
+import 'package:crypt_alert/src/app/cubits/authentication_cubit.dart';
+import 'package:crypt_alert/src/pages/login_page/login_page.dart';
 import 'package:crypt_alert/src/common/widgets/page_scaffold.dart';
 import 'package:crypt_alert/src/app/cubits/dialog_cubit.dart';
-import 'package:crypt_alert/src/app/cubits/router_cubit.dart';
 import 'package:crypt_alert/src/common/widgets/loading_indicator.dart';
 
 import 'bloc/home_page_bloc.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+class HomePage extends StatelessWidget {
+  const HomePage({
+    Key? key,
+    required this.username,
+  }) : super(key: key);
 
-  @override
-  _HomePageState createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  final usernameFieldController = TextEditingController();
-  final passwordFieldController = TextEditingController();
-  bool showValidationError = false;
-  String username = "";
-  String password = "";
+  final String username;
 
   @override
   Widget build(BuildContext context) {
-    return PageScaffold(
-      showAppBar: false,
-      content: content(context),
+    return BlocProvider(
+      create: (_) => HomePageBloc(
+        dialogCubit: context.read<DialogCubit>(),
+        authenticationCubit: context.read<AuthenticationCubit>(),
+        tokenRepository: TokenRepository(),
+      ),
+      child: PageScaffold(
+        showAppBar: false,
+        content: content(context),
+        backgroundColor: Colors.amber,
+      ),
     );
   }
 
   Widget content(BuildContext context) {
-    return BlocProvider(
-      create: (_) => HomePageBloc(
-        dialogCubit: context.read<DialogCubit>(),
-        routerCubit: context.read<RouterCubit>(),
-      ),
-      child: BlocBuilder<HomePageBloc, HomePageState>(
-        builder: (context, state) {
-          return mapStateToContent(context, state);
-        },
-      ),
+    return BlocBuilder<HomePageBloc, HomePageState>(
+      builder: (context, state) {
+        return mapStateToContent(context, state);
+      },
     );
   }
 
@@ -52,10 +53,10 @@ class _HomePageState extends State<HomePage> {
     switch (state.runtimeType) {
       case InitialState:
         return initialContent(context, state as InitialState);
+      case LoadInProgressState:
+        return loadInProgressContent(context, state as LoadInProgressState);
       case LoadSuccessState:
         return loadSuccessContent(context, state as LoadSuccessState);
-      case LoginRequestingState:
-        return loginRequestingContent(context, state as LoginRequestingState);
       default:
         throw Exception(
             "Incomplete State Mapping Case: No case for ${state.runtimeType}");
@@ -76,176 +77,166 @@ class _HomePageState extends State<HomePage> {
     LoadSuccessState state,
   ) {
     return SingleChildScrollView(
-      child: Column(
-        children: [
-          const SizedBox(height: 56),
-          appLogo(),
-          const SizedBox(height: 24),
-          appName(),
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.all(32),
-            child: Column(children: [
-              usernameField(),
-              //
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                profile(context),
+                alert(context),
+              ],
+            ),
+            const SizedBox(height: 16),
+            pageTitleText(context),
+            const SizedBox(height: 16),
+            // ignore: unnecessary_cast
+            ...(state.tokens
+                    .map(
+                      (token) => TokenCard(
+                        token: token,
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => AlertPage(token: token),
+                            ),
+                          );
+                        },
+                      ),
+                    )
+                    .toList() as List<Widget>)
+                .intersperse(
               const SizedBox(height: 16),
-              //
-              passwordField(),
-              //
-              const SizedBox(height: 32),
-              //
-              loginButton(context),
-              //
-              const SizedBox(height: 20),
-              //
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 32.0),
-                child: TextDivider(label: "or"),
-              ),
-              //
-              // const SizedBox(height: 8),
-              //
-              registerButton(context),
-              //
-            ]),
-          )
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget appLogo() {
-    return Stack(
-      children: [
-        Center(
-          child: Container(
-            decoration: BoxDecoration(
-                color: Colors.amber, borderRadius: BorderRadius.circular(160)),
-            child: const SizedBox(
-              width: 176,
-              height: 176,
+  Widget profile(BuildContext context) {
+    return GestureDetector(
+      onTap: () => {
+        showAdaptiveActionSheet(
+          context: context,
+          actions: [
+            BottomSheetAction(
+              title: const Text('logout'),
+              onPressed: () {
+                Navigator.of(context).pop();
+
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (_) => const LoginPage(),
+                  ),
+                );
+              },
             ),
-          ),
+          ],
+          cancelAction: CancelAction(
+            title: const Text('Cancel'),
+          ), // onPressed parameter is optional by default will dismiss the ActionSheet
+        )
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 8,
         ),
-        const Center(
-          child: Padding(
-            padding: EdgeInsets.only(top: 8),
-            child: Icon(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          // border: Border.all(
+          //   color: Colors.black54,
+          //   width: 2,
+          // ),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: const [
+            CircleAvatar(
+              backgroundImage: AssetImage('images/elonmusk.jpeg'),
+              radius: 16,
+            ),
+            SizedBox(width: 8),
+            Text(
+              "Elon Musk",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget alert(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        // Navigator.of(context).pushReplacement(
+        //   MaterialPageRoute(
+        //     builder: (_) => const AlertPage(),
+        //   ),
+        // );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 8,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          // border: Border.all(
+          //   width: 3,
+          // ),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: const [
+            Text(
+              "Alert",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            SizedBox(
+              width: 4,
+            ),
+            Icon(
               Icons.notifications,
-              size: 152,
-              color: Colors.black54,
+              color: Colors.black87,
             ),
-          ),
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget pageTitleText(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          children: const [
+            Text(
+              "Token Lists",
+              style: TextStyle(
+                fontSize: 56,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        )
       ],
     );
   }
 
-  Widget appName() {
-    return const Text(
-      "Crypt Alert",
-      style: TextStyle(
-        fontWeight: FontWeight.bold,
-        color: Colors.black54,
-        fontSize: 32,
-      ),
-    );
-  }
-
-  Widget usernameField() {
-    return TextField(
-      controller: usernameFieldController,
-      decoration: InputDecoration(
-        border: const OutlineInputBorder(),
-        labelText: 'Username',
-        errorText: showValidationError
-            ? fieldErrorText(usernameFieldController)
-            : null,
-      ),
-      onChanged: (text) {
-        setState(() {
-          username = text;
-        });
-      },
-    );
-  }
-
-  Widget passwordField() {
-    return TextField(
-      controller: passwordFieldController,
-      obscureText: true,
-      decoration: InputDecoration(
-          border: const OutlineInputBorder(),
-          labelText: 'Password',
-          errorText: showValidationError
-              ? fieldErrorText(passwordFieldController)
-              : null),
-      onChanged: (text) {
-        setState(() {
-          password = text;
-        });
-      },
-    );
-  }
-
-  String? fieldErrorText(TextEditingController controller) {
-    final text = controller.value.text;
-
-    if (text.isEmpty) {
-      return 'Can\'t be empty';
-    }
-
-    return null;
-  }
-
-  Widget loginButton(BuildContext context) {
-    final bloc = context.read<HomePageBloc>();
-
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-          primary: Colors.amber,
-          padding: const EdgeInsets.symmetric(horizontal: 64, vertical: 8),
-          textStyle:
-              const TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
-      onPressed: () {
-        final isLoginFormValid = username.isNotEmpty && password.isNotEmpty;
-
-        if (isLoginFormValid) {
-          bloc.add(LoginRequestedEvent(username, password));
-        } else {
-          setState(() {
-            showValidationError = true;
-          });
-        }
-      },
-      child: const Text(
-        'Log in',
-        style: TextStyle(fontSize: 24),
-      ),
-    );
-  }
-
-  Widget registerButton(BuildContext context) {
-    final bloc = context.read<HomePageBloc>();
-
-    return TextButton(
-      style: TextButton.styleFrom(padding: const EdgeInsets.all(0)),
-      onPressed: () {
-        bloc.add(RegisterRequestedEvent());
-      },
-      child: const Text(
-        'Sign up',
-        style: TextStyle(
-          fontSize: 16,
-          color: Colors.black54,
-        ),
-      ),
-    );
-  }
-
-  Widget loginRequestingContent(
+  Widget loadInProgressContent(
     BuildContext context,
-    LoginRequestingState state,
+    LoadInProgressState state,
   ) {
     return const LoadingIndicator();
   }

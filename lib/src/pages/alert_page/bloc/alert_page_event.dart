@@ -1,15 +1,15 @@
-part of 'home_page_bloc.dart';
+part of 'alert_page_bloc.dart';
 
-abstract class HomePageEvent {}
+abstract class AlertPageEvent {}
 
 class StartedEvent extends _Event {}
 
 class LoadRequestedEvent extends _Event {}
 
 class LoadSucceededEvent extends _Event {
-  LoadSucceededEvent({required this.tokens});
+  LoadSucceededEvent({required this.alerts});
 
-  final List<Token> tokens;
+  final List<Alert> alerts;
 }
 
 class LoadFailedEvent extends _Event {

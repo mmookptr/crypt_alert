@@ -7,3 +7,5 @@ class InitialState extends _State {}
 class LoadSuccessState extends _State {}
 
 class RegisterRequestingState extends _State {}
+
+class RegisterSuccessState extends _State {}

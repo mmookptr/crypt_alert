@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
 
 class PageScaffold extends StatelessWidget {
-  const PageScaffold(
-      {Key? key,
-      this.floatingActionButton,
-      this.appBarActions,
-      this.showAppBar = true,
-      this.title,
-      required this.content})
-      : super(key: key);
+  const PageScaffold({
+    Key? key,
+    this.floatingActionButton,
+    this.appBarActions,
+    this.showAppBar = true,
+    this.title,
+    this.backgroundColor,
+    required this.content,
+  }) : super(key: key);
 
   final String? title;
   final Widget content;
   final bool showAppBar;
   final Widget? floatingActionButton;
   final List<Widget>? appBarActions;
+  final Color? backgroundColor;
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +45,7 @@ class PageScaffold extends StatelessWidget {
       onTap: () => tapHandler(),
       child: Scaffold(
         appBar: appBar,
+        backgroundColor: backgroundColor,
         body: SafeArea(child: content),
         floatingActionButton: floatingActionButton,
       ),
