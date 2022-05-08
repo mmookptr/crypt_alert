@@ -6,11 +6,13 @@ class TokenCard extends StatelessWidget {
   const TokenCard({
     Key? key,
     required this.token,
+    this.showAlert = false,
     this.onTap,
   }) : super(key: key);
 
   final Token token;
   final void Function()? onTap;
+  final bool showAlert;
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +40,17 @@ class TokenCard extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+                if (showAlert && token.hasActiveAlert)
+                  Row(
+                    children: const [
+                      SizedBox(width: 8),
+                      Icon(
+                        Icons.notification_important,
+                        size: 32,
+                        color: Colors.red,
+                      ),
+                    ],
+                  )
               ],
             ),
             const SizedBox(height: 24),

@@ -17,3 +17,11 @@ class LoadFailedEvent extends _Event {
 
   final String error;
 }
+
+class DeleteAlertRequestedEvent extends _Event {
+  DeleteAlertRequestedEvent({required this.alert});
+
+  final Alert alert;
+}
+
+class DeleteAlertSucceededEvent extends _Event {}

@@ -11,6 +11,7 @@ import 'package:crypt_alert/src/common/widgets/loading_indicator.dart';
 import '../../models/alert.dart';
 import '../../models/token.dart';
 
+import '../add_alert_page/add_alert_page.dart';
 import 'bloc/alert_page_bloc.dart';
 
 class AlertPage extends StatelessWidget {
@@ -36,13 +37,36 @@ class AlertPage extends StatelessWidget {
         token: token,
       ),
       child: PageScaffold(
-        title: "${token.name} alerts",
+        title: "${token.name} Alerts",
         content: content(context),
         backgroundColor: Colors.amber,
-        appBarActions: [
-          IconButton(onPressed: () {}, icon: const Icon(Icons.add))
-        ],
+        appBarActions: [addAlertButton()],
       ),
+    );
+  }
+
+  Widget addAlertButton() {
+    return BlocBuilder<AlertPageBloc, AlertPageState>(
+      builder: (context, state) {
+        return IconButton(
+          onPressed: () {
+            Navigator.of(context)
+                .push(
+              MaterialPageRoute(
+                builder: (_) => AddAlertPage(
+                  token: token,
+                ),
+              ),
+            )
+                .then(
+              (value) {
+                context.read<AlertPageBloc>().add(LoadRequestedEvent());
+              },
+            );
+          },
+          icon: const Icon(Icons.add),
+        );
+      },
     );
   }
 
@@ -90,13 +114,15 @@ class AlertPage extends StatelessWidget {
         child: Column(
           children: [
             TokenCard(token: token),
+            const SizedBox(height: 16),
+            alertList(context, state.alerts),
           ],
         ),
       ),
     );
   }
 
-  Widget alertCard(BuildContext context, Alert alert) {
+  Widget alertList(BuildContext context, List<Alert> alerts) {
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: 32,
@@ -106,8 +132,100 @@ class AlertPage extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
       ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              Text(
+                "Alerts",
+                style: TextStyle(
+                  color: Colors.amber,
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          ...(alerts.isNotEmpty)
+              ? alerts.map((alert) => alertCard(context, alert)).toList()
+              : const [
+                  SizedBox(
+                    height: 16,
+                  ),
+                  Text("No Alert")
+                ]
+        ],
+      ),
+    );
+  }
+
+  Widget alertCard(BuildContext context, Alert alert) {
+    final bloc = context.read<AlertPageBloc>();
+
+    return Container(
+      margin: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 12,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.amber,
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Row(
-        children: [Text(alert.compareTo)],
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              (alert.isConditionMatched)
+                  ? Row(
+                      children: const [
+                        Icon(
+                          Icons.notification_important,
+                          size: 24,
+                          color: Colors.red,
+                        ),
+                        SizedBox(width: 4),
+                      ],
+                    )
+                  : const SizedBox(width: 24),
+              Text(
+                alert.compareTo.toString(),
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                (alert.compareBy == "Greater") ? ">" : "<",
+                style: TextStyle(
+                  color: (alert.compareBy == "Greater")
+                      ? Colors.green
+                      : Colors.red,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                alert.compareValue.toString(),
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          IconButton(
+              onPressed: () {
+                bloc.add(DeleteAlertRequestedEvent(alert: alert));
+              },
+              icon: const Icon(Icons.delete)),
+        ],
       ),
     );
   }

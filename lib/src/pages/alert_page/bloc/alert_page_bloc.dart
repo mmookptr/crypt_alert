@@ -22,6 +22,8 @@ class AlertPageBloc extends Bloc<_Event, _State> {
     on<LoadRequestedEvent>(_onLoadRequested);
     on<LoadSucceededEvent>(_onLoadSucceeded);
     on<LoadFailedEvent>(_onLoadFailed);
+    on<DeleteAlertRequestedEvent>(_onDeleteAlertRequested);
+    on<DeleteAlertSucceededEvent>(_onDeleteAlertSucceeded);
   }
 
   final DialogCubit dialogCubit;
@@ -48,7 +50,27 @@ class AlertPageBloc extends Bloc<_Event, _State> {
     QuerySnapshot<Alert> querySnapshot =
         await alertCollection.where("tokenName", isEqualTo: tokenName).get();
 
-    final alerts = querySnapshot.docs.map((doc) => doc.data()).toList();
+    final alerts = querySnapshot.docs.map((doc) {
+      final alert = doc.data();
+      alert.id = doc.id;
+
+      if (alert.compareTo == "Price") {
+        final x = token.price;
+        final isConditionMatched = (alert.compareBy == "Greater"
+            ? x > alert.compareValue
+            : x < alert.compareValue);
+
+        alert.isConditionMatched = isConditionMatched;
+      } else {
+        final x = token.dailyChange;
+
+        alert.isConditionMatched = (alert.compareBy == "Greater"
+            ? x > alert.compareValue
+            : x < alert.compareValue);
+      }
+
+      return alert;
+    }).toList();
 
     add(LoadSucceededEvent(alerts: alerts));
   }
@@ -69,5 +91,33 @@ class AlertPageBloc extends Bloc<_Event, _State> {
     dialogCubit.show(title: "Load Failed", content: errorMessage);
 
     emit(state);
+  }
+
+  void _onDeleteAlertRequested(
+    DeleteAlertRequestedEvent event,
+    Emitter<_State> emit,
+  ) async {
+    emit(LoadInProgressState());
+
+    deleteAlert(event.alert);
+  }
+
+  void deleteAlert(Alert alert) async {
+    try {
+      await alertCollection.doc(alert.id).delete();
+
+      add(DeleteAlertSucceededEvent());
+    } catch (error) {
+      add(LoadFailedEvent(error.toString()));
+    }
+  }
+
+  void _onDeleteAlertSucceeded(
+    DeleteAlertSucceededEvent event,
+    Emitter<_State> emit,
+  ) {
+    emit(state);
+
+    add(LoadRequestedEvent());
   }
 }

@@ -22,4 +22,5 @@ class Token {
   final num price;
   final num marketCap;
   final num dailyChange;
+  bool hasActiveAlert = false;
 }

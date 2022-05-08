@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:adaptive_action_sheet/adaptive_action_sheet.dart';
@@ -12,15 +13,22 @@ import 'package:crypt_alert/src/common/widgets/page_scaffold.dart';
 import 'package:crypt_alert/src/app/cubits/dialog_cubit.dart';
 import 'package:crypt_alert/src/common/widgets/loading_indicator.dart';
 
+import '../../models/alert.dart';
 import 'bloc/home_page_bloc.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({
+  HomePage({
     Key? key,
     required this.username,
   }) : super(key: key);
 
   final String username;
+
+  final CollectionReference<Alert> alertCollection =
+      FirebaseFirestore.instance.collection('alerts').withConverter<Alert>(
+            fromFirestore: (snapshot, _) => Alert.fromJson(snapshot.data()!),
+            toFirestore: (alert, _) => alert.toJson(),
+          );
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +37,7 @@ class HomePage extends StatelessWidget {
         dialogCubit: context.read<DialogCubit>(),
         authenticationCubit: context.read<AuthenticationCubit>(),
         tokenRepository: TokenRepository(),
+        alertCollection: alertCollection,
       ),
       child: PageScaffold(
         showAppBar: false,
@@ -76,6 +85,8 @@ class HomePage extends StatelessWidget {
     BuildContext context,
     LoadSuccessState state,
   ) {
+    final bloc = context.read<HomePageBloc>();
+
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -83,9 +94,7 @@ class HomePage extends StatelessWidget {
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                profile(context),
-              ],
+              children: [profile(context), reload(context)],
             ),
             const SizedBox(height: 16),
             pageTitleText(context),
@@ -94,13 +103,18 @@ class HomePage extends StatelessWidget {
             ...(state.tokens
                     .map(
                       (token) => TokenCard(
+                        showAlert: true,
                         token: token,
                         onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => AlertPage(token: token),
-                            ),
-                          );
+                          Navigator.of(context)
+                              .push(MaterialPageRoute(
+                                builder: (_) => AlertPage(token: token),
+                              ))
+                              .then(
+                                (value) => bloc.add(
+                                  LoadRequestedEvent(),
+                                ),
+                              );
                         },
                       ),
                     )
@@ -164,6 +178,37 @@ class HomePage extends StatelessWidget {
                 fontWeight: FontWeight.bold,
                 color: Colors.black87,
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget reload(BuildContext context) {
+    final bloc = context.read<HomePageBloc>();
+
+    return GestureDetector(
+      onTap: () => bloc.add(LoadRequestedEvent()),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          vertical: 8,
+          horizontal: 16,
+        ),
+        decoration: BoxDecoration(
+            color: Colors.white, borderRadius: BorderRadius.circular(16)),
+        child: Row(
+          children: const [
+            Text("Refresh",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                )),
+            SizedBox(
+              width: 8,
+            ),
+            Icon(
+              Icons.replay_outlined,
+              size: 24,
             ),
           ],
         ),
